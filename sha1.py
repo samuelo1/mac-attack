@@ -71,15 +71,18 @@ class Sha1Hash(object):
     digest_size = 20
     block_size = 64
 
-    def __init__(self):
+    def __init__(self, initialDigest=None):
         # Initial digest variables
-        self._h = (
-            0x67452301,
-            0xEFCDAB89,
-            0x98BADCFE,
-            0x10325476,
-            0xC3D2E1F0,
-        )
+        if initialDigest is None:
+            self._h = (
+                0x67452301,
+                0xEFCDAB89,
+                0x98BADCFE,
+                0x10325476,
+                0xC3D2E1F0,
+            )
+        else:
+            self._h = initialDigest
 
         # bytes object with 0 <= len < 64 used to store the end of the message
         # if the message length is not congruent to 64
@@ -114,15 +117,16 @@ class Sha1Hash(object):
         """Produce the final hash value (big-endian) as a bytes object"""
         return b''.join(struct.pack(b'>I', h) for h in self._produce_digest())
 
-    def hexdigest(self):
+    def hexdigest(self, message_byte_length=None):
         """Produce the final hash value (big-endian) as a hex string"""
-        return '%08x%08x%08x%08x%08x' % self._produce_digest()
+        return '%08x%08x%08x%08x%08x' % self._produce_digest(message_byte_length)
 
-    def _produce_digest(self):
+    def _produce_digest(self, message_byte_length=None):
         """Return finalized digest variables for the data processed so far."""
         # Pre-processing:
         message = self._unprocessed
-        message_byte_length = self._message_byte_length + len(message)
+        if message_byte_length is None:
+            message_byte_length = self._message_byte_length + len(message)
 
         # append the bit '1' to the message
         message += b'\x80'
